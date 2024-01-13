@@ -1,7 +1,7 @@
 data:
   type: image
-  train_dir: /datasets/102_flowers/
-  test_dir: /datasets/102_flowers/
+  train_dir: ./datasets/flower/
+  test_dir: ./datasets/flower/
   img_size: 256
   nlabels: 1
 generator:
@@ -18,7 +18,7 @@ z_dist:
   type: gauss
   dim: 256
 training:
-  out_dir: /output/flower
+  out_dir: ./output/flower
   batch_size: 32
 test:
   # model_file: https://s3.eu-central-1.amazonaws.com/avg-projects/gan_stability/models/celeba-ab478c9d.pt
