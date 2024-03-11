@@ -9,6 +9,7 @@ generator:
   kwargs:
     nfilter: 64
     embed_size: 1
+    orig_vrs: true
 discriminator:
   name: resnet4_adapter
   kwargs:

@@ -9,7 +9,7 @@ import torch.utils.data.distributed
 
 
 class Generator(nn.Module):
-    def __init__(self, z_dim=256, nlabels=1, size=256, embed_size=256, nfilter=64, **kwargs):
+    def __init__(self, z_dim=256, nlabels=1, size=256, embed_size=256, nfilter=64, orig_vrs=False, **kwargs):
         super().__init__()
         s0 = self.s0 = size // 64
         nf = self.nf = nfilter
@@ -23,13 +23,13 @@ class Generator(nn.Module):
         self.emb1=nn.Embedding(1,16*nf*s0*s0)
         self.emb2=nn.Embedding(1,16*nf*s0*s0)
 
-        self.resnet_0_0 = ResnetBlockG(16*nf, 16*nf)
-        self.resnet_1_0 = ResnetBlockG(16*nf, 16*nf)
-        self.resnet_2_0 = ResnetBlockG(16*nf, 8*nf)
-        self.resnet_3_0 = ResnetBlockG(8*nf, 4*nf)
-        self.resnet_4_0 = ResnetBlockG(4*nf, 2*nf)
-        self.resnet_5_0 = ResnetBlockG(2*nf, 1*nf)
-        self.resnet_6_0 = ResnetBlockG(1*nf, 1*nf)
+        self.resnet_0_0 = ResnetBlockG(16*nf, 16*nf,  orig_vrs=orig_vrs)
+        self.resnet_1_0 = ResnetBlockG(16*nf, 16*nf,  orig_vrs=orig_vrs)
+        self.resnet_2_0 = ResnetBlockG(16*nf, 8*nf, orig_vrs=orig_vrs)
+        self.resnet_3_0 = ResnetBlockG(8*nf, 4*nf, orig_vrs=orig_vrs)
+        self.resnet_4_0 = ResnetBlockG(4*nf, 2*nf, orig_vrs=orig_vrs)
+        self.resnet_5_0 = ResnetBlockG(2*nf, 1*nf, orig_vrs=orig_vrs)
+        self.resnet_6_0 = ResnetBlockG(1*nf, 1*nf, orig_vrs=orig_vrs)
         self.conv_img = nn.Conv2d(nf, 3, 7, padding=3)
 
 
@@ -72,7 +72,7 @@ class Generator(nn.Module):
         return out
 
 class Het_conv(nn.Module):
-    def __init__(self, in_channels, out_channels,if_skip=False):
+    def __init__(self, in_channels, out_channels, if_skip=False, orig_vrs=False):
         super(Het_conv, self).__init__()
         # Groupwise Convolution
         #print("P-----------")
@@ -82,6 +82,10 @@ class Het_conv(nn.Module):
             f_size=32
         else:
             f_size=16
+
+        if orig_vrs:
+            # original cam-gan version has less groups
+            f_size *= 2 
 
         self.gwc = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, groups=int(in_channels/f_size), bias=False)
         # Pointwise Convolution
@@ -103,7 +107,7 @@ class conv_dw(nn.Module):
 
 
 class ResnetBlockG(nn.Module):
-    def __init__(self, fin, fout, fhidden=None, is_bias=True):
+    def __init__(self, fin, fout, fhidden=None, is_bias=True, orig_vrs=False):
         super().__init__()
         # Attributes
         self.is_bias = is_bias
@@ -119,8 +123,8 @@ class ResnetBlockG(nn.Module):
         self.conv_0 = nn.Conv2d(self.fin, self.fhidden, 3, stride=1, padding=1)
         self.conv_1 = nn.Conv2d(self.fhidden, self.fout, 3, stride=1, padding=1, bias=is_bias)
 
-        self.hc0=Het_conv(self.fhidden,self.fhidden)
-        self.hc1=Het_conv(self.fout,self.fout)
+        self.hc0=Het_conv(self.fhidden,self.fhidden, orig_vrs=orig_vrs)
+        self.hc1=Het_conv(self.fout,self.fout, orig_vrs=orig_vrs)
 
         self.calib0 = conv_dw(self.fin, self.fhidden)
         self.calib1 = conv_dw(self.fhidden, self.fout)
