@@ -124,7 +124,7 @@ def toggle_grad(model, requires_grad):
     for p in model.parameters():
         p.requires_grad_(requires_grad)
       
-def toggle_gradG(model, requires_grad):
+""" def toggle_gradG(model, requires_grad):
    
    gf_paralist=[1,2,5,6,7,8,15,16,17,18,25,26,27,28,37,38,39,40,49,50,51,52,61,62,63,64,73,74,75,76]
    #gf_paralist_wd_1=[1,2,5,6,7,8,15,16,17,18,25,26,27,28,37,38,39,40,49,50,51,52,10,12,20,22,30,32,42,44,54,56,66,68,78,80,61,62,63,64,73,74,75,76]
@@ -141,7 +141,18 @@ def toggle_gradG(model, requires_grad):
            i=i+1
    else:
        for p in model.parameters():
-           p.requires_grad_(requires_grad)
+           p.requires_grad_(requires_grad) """
+def toggle_gradG(model, requires_grad):
+        if requires_grad:
+            for i, (n,p) in enumerate(model.named_parameters()):
+                if 'hc' not in n and 'calib' not in n and 'conv_s_adapt' not in n:
+                    p.requires_grad_(False)
+                else:
+                    p.requires_grad_(requires_grad)
+        else:
+            for p in model.parameters():
+                p.requires_grad_(requires_grad)
+            
 
 
 def compute_grad2(d_out, x_in):
